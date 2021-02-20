@@ -1,0 +1,28 @@
+offerId = 'Piscean%20Pulverizer'
+amount = 30
+
+nonce = str(round(datetime.now().timestamp()))
+def buy_dmarket_item(offerId, amount):
+    api_url_path = "/exchange/v1/offers-buy"
+    method = "PATCH"
+    body = {"offers": [{"offerId": offerId, "price": {"amount": amount, "currency": "USD"},
+      "type": "dmarket"}]}
+
+    string_to_sign = method + api_url_path + json.dumps(body) + nonce
+    signature_prefix = "dmar ed25519 "
+    encoded = string_to_sign.encode('utf-8')
+    secret_bytes = bytes.fromhex(secret_key)
+    signature_bytes = crypto_sign(encoded, bytes.fromhex(secret_key))
+    signature = signature_bytes[:64].hex()
+    headers = {
+        "X-Api-Key": public_key,
+        "X-Request-Sign": signature_prefix + signature,
+        "X-Sign-Date": nonce
+        }
+
+    resp = requests.patch(rootApiUrl + api_url_path, json=body, headers=headers)
+    print(resp.status_code)
+    return resp.status_code
+
+
+buy_dmarket_item(offerId, amount)
